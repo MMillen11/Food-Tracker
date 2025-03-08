@@ -4,6 +4,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('pong');
     const context = canvas.getContext('2d');
     
+    // Load images
+    const flagImage = new Image();
+    flagImage.src = 'C:/Users/mmill/Downloads/cartoon-2026568_640.png';
+    let imageLoaded = false;
+    
+    const americanFlagImage = new Image();
+    americanFlagImage.src = 'C:/Users/mmill/Downloads/american-flag-2144392_640.png';
+    let americanFlagLoaded = false;
+    
+    const canadianFlagImage = new Image();
+    canadianFlagImage.src = 'C:/Users/mmill/Downloads/canada-27003_640.png';
+    let canadianFlagLoaded = false;
+    
+    // Image load handlers
+    flagImage.onload = () => {
+        imageLoaded = true;
+        checkAllImagesLoaded();
+    };
+    
+    americanFlagImage.onload = () => {
+        americanFlagLoaded = true;
+        checkAllImagesLoaded();
+    };
+    
+    canadianFlagImage.onload = () => {
+        canadianFlagLoaded = true;
+        checkAllImagesLoaded();
+    };
+    
+    function checkAllImagesLoaded() {
+        if (imageLoaded && americanFlagLoaded && canadianFlagLoaded) {
+            draw(); // Initial draw once all images are loaded
+        }
+    }
+    
     // Game elements
     const startButton = document.getElementById('start-btn');
     const resetButton = document.getElementById('reset-btn');
@@ -88,22 +123,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const player = {
         x: 30,
         y: canvas.height / 2 - 50,
-        width: 15,
-        height: 80,
-        handleLength: 30,
-        handleWidth: 8,
-        color: '#2196F3',
+        width: 30,  // Adjusted for flag aspect ratio
+        height: 60,  // Adjusted for flag aspect ratio
+        handleLength: 20,
+        handleWidth: 6,
+        color: '#2196F3',  // Kept for fallback
         score: 0
     };
     
     const computer = {
-        x: canvas.width - 45,
+        x: canvas.width - 60,  // Adjusted position for new width
         y: canvas.height / 2 - 50,
-        width: 15,
-        height: 80,
-        handleLength: 30,
-        handleWidth: 8,
-        color: '#F44336',
+        width: 30,  // Adjusted for flag aspect ratio
+        height: 60,  // Adjusted for flag aspect ratio
+        handleLength: 20,
+        handleWidth: 6,
+        color: '#F44336',  // Kept for fallback
         score: 0
     };
     
@@ -121,6 +156,31 @@ document.addEventListener('DOMContentLoaded', () => {
         border: '#FFFFFF',   // White border
         lines: '#FFFFFF'     // White lines
     };
+    
+    // Obstacles array
+    const obstacles = [
+        {
+            x: canvas.width / 2 - 80,
+            y: canvas.height / 4,
+            width: 160,  // Wider to maintain image aspect ratio
+            height: 40,  // Taller to maintain image aspect ratio
+            active: true
+        },
+        {
+            x: canvas.width / 2 - 80,
+            y: canvas.height / 2 - 20,
+            width: 160,
+            height: 40,
+            active: true
+        },
+        {
+            x: canvas.width / 2 - 80,
+            y: (canvas.height * 3) / 4 - 20,
+            width: 160,
+            height: 40,
+            active: true
+        }
+    ];
     
     // Event Listeners
     startButton.addEventListener('click', startGame);
@@ -188,6 +248,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resetBall();
         player.y = canvas.height / 2 - player.height / 2;
         computer.y = canvas.height / 2 - computer.height / 2;
+        
+        // Reset obstacles
+        obstacles.forEach(obstacle => obstacle.active = true);
         
         // Draw the initial state
         draw();
@@ -302,32 +365,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function drawPaddle(paddle) {
-        // Draw the paddle head (rounded rectangle)
-        context.fillStyle = paddle.color;
+        context.save();
         
-        // Draw the main paddle part with rounded corners
-        context.beginPath();
-        context.moveTo(paddle.x, paddle.y + 10);
-        context.arcTo(paddle.x, paddle.y, paddle.x + 10, paddle.y, 10);
-        context.arcTo(paddle.x + paddle.width, paddle.y, paddle.x + paddle.width, paddle.y + 10, 10);
-        context.arcTo(paddle.x + paddle.width, paddle.y + paddle.height, paddle.x + paddle.width - 10, paddle.y + paddle.height, 10);
-        context.arcTo(paddle.x, paddle.y + paddle.height, paddle.x, paddle.y + paddle.height - 10, 10);
-        context.closePath();
-        context.fill();
+        // Add shadow for depth
+        context.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        context.shadowBlur = 5;
+        context.shadowOffsetY = 2;
         
-        // Draw the handle
-        const handleX = paddle.x < canvas.width / 2 ? 
-            paddle.x + paddle.width : 
-            paddle.x - paddle.handleWidth;
+        // Determine which flag to use based on if it's the player or computer paddle
+        const flagImage = paddle === player ? americanFlagImage : canadianFlagImage;
         
-        const handleY = paddle.y + (paddle.height / 2) - (paddle.handleLength / 2);
+        // Draw the paddle using the flag image
+        if ((paddle === player && americanFlagLoaded) || (paddle === computer && canadianFlagLoaded)) {
+            // Draw the main paddle part
+            context.drawImage(
+                flagImage,
+                paddle.x,
+                paddle.y,
+                paddle.width,
+                paddle.height
+            );
+            
+            // Draw the handle
+            const handleX = paddle === player ? 
+                paddle.x + paddle.width : 
+                paddle.x - paddle.handleWidth;
+            
+            const handleY = paddle.y + (paddle.height / 2) - (paddle.handleLength / 2);
+            
+            context.fillStyle = '#8B4513';  // Brown color for wooden handle
+            context.fillRect(
+                handleX,
+                handleY,
+                paddle.handleWidth,
+                paddle.handleLength
+            );
+        }
         
-        context.fillRect(
-            handleX, 
-            handleY, 
-            paddle.handleWidth, 
-            paddle.handleLength
-        );
+        // Add a subtle border around the paddle
+        context.strokeStyle = '#333333';
+        context.lineWidth = 2;
+        context.strokeRect(paddle.x, paddle.y, paddle.width, paddle.height);
+        
+        context.restore();
     }
     
     function drawExplosion(explosion) {
@@ -500,6 +580,91 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    function checkObstacleCollision() {
+        for (let obstacle of obstacles) {
+            if (!obstacle.active) continue;
+
+            // Check if ball collides with obstacle
+            if (ball.x + ball.radius > obstacle.x &&
+                ball.x - ball.radius < obstacle.x + obstacle.width &&
+                ball.y + ball.radius > obstacle.y &&
+                ball.y - ball.radius < obstacle.y + obstacle.height) {
+                
+                // Create explosion effect
+                createExplosion(ball.x, ball.y);
+                
+                // Determine which side of the obstacle was hit
+                const ballCenterX = ball.x;
+                const ballCenterY = ball.y;
+                const obstacleCenterX = obstacle.x + obstacle.width / 2;
+                const obstacleCenterY = obstacle.y + obstacle.height / 2;
+                
+                // Calculate collision angle
+                const angle = Math.atan2(ballCenterY - obstacleCenterY, ballCenterX - obstacleCenterX);
+                
+                // Determine if collision is more horizontal or vertical
+                if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
+                    // Horizontal collision
+                    ball.velocityX *= -1;
+                } else {
+                    // Vertical collision
+                    ball.velocityY *= -1;
+                }
+                
+                // Increase ball speed slightly
+                ball.velocityX *= 1.1;
+                ball.velocityY *= 1.1;
+                
+                // Play bounce sound (if we add sound later)
+                // playBounceSound();
+                
+                // Add some randomness to the bounce
+                ball.velocityY += (Math.random() - 0.5) * 2;
+                
+                // Prevent ball from getting stuck in obstacle
+                while (ball.x + ball.radius > obstacle.x &&
+                       ball.x - ball.radius < obstacle.x + obstacle.width &&
+                       ball.y + ball.radius > obstacle.y &&
+                       ball.y - ball.radius < obstacle.y + obstacle.height) {
+                    ball.x += Math.sign(ball.velocityX);
+                    ball.y += Math.sign(ball.velocityY);
+                }
+            }
+        }
+    }
+
+    function drawObstacles() {
+        if (!imageLoaded) return;  // Don't draw if image isn't loaded yet
+
+        for (let obstacle of obstacles) {
+            if (!obstacle.active) continue;
+            
+            // Draw the image instead of rectangles
+            context.save();
+            
+            // Add shadow for depth
+            context.shadowColor = 'rgba(0, 0, 0, 0.2)';
+            context.shadowBlur = 5;
+            context.shadowOffsetY = 2;
+            
+            // Draw the image stretched to fit the obstacle dimensions
+            context.drawImage(
+                flagImage,
+                obstacle.x,
+                obstacle.y,
+                obstacle.width,
+                obstacle.height
+            );
+            
+            // Add a subtle border
+            context.strokeStyle = '#333333';
+            context.lineWidth = 2;
+            context.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            
+            context.restore();
+        }
+    }
+    
     function draw() {
         // Draw the table
         drawTable();
@@ -521,6 +686,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Draw quote popup
         drawQuotePopup();
+        
+        // Draw obstacles
+        drawObstacles();
         
         // Draw game over message if needed
         if (playerScore >= winningScore || computerScore >= winningScore) {
@@ -609,6 +777,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Update explosions
         updateExplosions();
+        
+        // Check for obstacle collisions
+        checkObstacleCollision();
         
         // Ball collision with top and bottom walls
         if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {

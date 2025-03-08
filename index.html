@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏓</text></svg>">
+</head>
+<body>
+    <div class="game-container">
+        <h1>Ping Pong Game</h1>
+        <div class="score-board">
+            <div id="player-score">0</div>
+            <div id="computer-score">0</div>
+        </div>
+        <canvas id="pong" width="800" height="500"></canvas>
+        <div class="controls">
+            <button id="start-btn">Start Game</button>
+            <button id="reset-btn">Reset Game</button>
+            <div class="difficulty">
+                <label for="difficulty">Difficulty:</label>
+                <select id="difficulty">
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+        </div>
+        <div class="instructions">
+            <h2>How to Play</h2>
+            <p>Use your mouse or touch to move the left paddle up and down.</p>
+            <p>Try to hit the ball past the computer's paddle to score points.</p>
+            <p>First player to reach 10 points wins!</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
